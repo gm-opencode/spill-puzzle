@@ -59,16 +59,25 @@ Build command `npm run build`, publish directory `dist`. `_headers` works as on 
 
 ### GitHub Pages
 
-Pages serves the site under `/<repository>/`, so build with that base path:
+`.github/workflows/deploy-pages.yml` deploys automatically:
+
+- **When:** after the CI workflow passes on `main` (it deploys the exact commit CI tested), or by
+  hand from **Actions → Deploy to GitHub Pages → Run workflow**.
+- **How:** it builds with `BASE_PATH` set to the path Pages reports (`/spill-puzzle/` for this
+  repository, `/` with a custom domain) and publishes `dist/`.
+
+One-time setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
+The workflow file must be on `main` before the automatic trigger fires (GitHub only runs
+`workflow_run` workflows from the default branch).
+
+The site is then at `https://<owner>.github.io/spill-puzzle/`. GitHub Pages ignores `_headers`;
+that's fine, because browsers check the service worker for updates without using the HTTP cache.
+
+To build the same thing locally:
 
 ```bash
 BASE_PATH=/spill-puzzle/ npm run build
 ```
-
-Then publish `dist/` (for example with the `actions/upload-pages-artifact` and
-`actions/deploy-pages` actions, after enabling Pages with "GitHub Actions" as the source in the
-repository settings). GitHub Pages ignores `_headers`; that's fine, because browsers check the
-service worker for updates without using the HTTP cache.
 
 ### After deploying
 
