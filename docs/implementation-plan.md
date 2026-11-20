@@ -14,12 +14,12 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** `npm run build` succeeds, CI is green, and a blank app renders "PicPuzzle".
 
 ## Milestone 1 — Geometry core (pure, tested)
-- [ ] `rng.ts`: seeded mulberry32.
-- [ ] `grid.ts`: `computeGrid(w, h, N)` (spec §3).
-- [ ] `edges.ts`: edge parameters and the Bézier edge path, forward and reversed (spec §4.1–4.2).
-- [ ] `outline.ts`: piece outline and bounds (spec §4.3–4.4).
-- [ ] `flatten.ts`: Bézier → polygon (spec §4.5).
-- [ ] A dev-only debug page `#/debug/shapes` that draws all outlines for a sample grid on a 2D canvas.
+- [x] `rng.ts`: seeded mulberry32.
+- [x] `grid.ts`: `computeGrid(w, h, N)` (spec §3).
+- [x] `edges.ts`: edge parameters and the Bézier edge path, forward and reversed (spec §4.1–4.2).
+- [x] `outline.ts`: piece outline and bounds (spec §4.3–4.4).
+- [x] `flatten.ts`: Bézier → polygon (spec §4.5).
+- [x] A dev-only debug page `#/debug/shapes` that draws all outlines for a sample grid on a 2D canvas.
 
 **Tests:** grid results for several aspect ratios and N values. The same seed gives identical output (snapshot). Neighbouring pieces share exactly the same edge points (reversed). Border edges are straight. Polygon points stay within the piece bounds.
 **DoD:** unit tests pass, and the debug page shows clean interlocking shapes.
