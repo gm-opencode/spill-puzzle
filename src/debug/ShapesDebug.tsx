@@ -111,6 +111,11 @@ export default function ShapesDebug() {
   return (
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
       <h1 style={{ margin: 0, fontSize: 20 }}>Debug: piece shapes</h1>
+      <p style={{ margin: 0 }}>
+        <a href="#/debug/bake" style={{ color: 'inherit' }}>
+          Import and bake debug
+        </a>
+      </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center' }}>
         <label>
           Pieces{' '}

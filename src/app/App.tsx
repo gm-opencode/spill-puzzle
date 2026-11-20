@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
  * production builds this branch and the debug chunk are removed entirely.
  */
 const ShapesDebug = import.meta.env.DEV ? lazy(() => import('../debug/ShapesDebug')) : null;
+const BakeDebug = import.meta.env.DEV ? lazy(() => import('../debug/BakeDebug')) : null;
 
 function useHash(): string {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -23,6 +24,14 @@ export function App() {
     return (
       <Suspense fallback={null}>
         <ShapesDebug />
+      </Suspense>
+    );
+  }
+
+  if (BakeDebug && hash.startsWith('#/debug/bake')) {
+    return (
+      <Suspense fallback={null}>
+        <BakeDebug />
       </Suspense>
     );
   }

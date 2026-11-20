@@ -25,9 +25,9 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** unit tests pass, and the debug page shows clean interlocking shapes.
 
 ## Milestone 2 — Image import and baking
-- [ ] `importImage.ts` (spec §2): decode, EXIF orientation, downscale, WebP/JPEG encode, thumbnail, size validation.
-- [ ] `bake.worker.ts` + `atlas.ts`: clip, bevel, outline and shelf-pack into atlases (spec §5), with progress events.
-- [ ] Main-thread fallback when `OffscreenCanvas` is unavailable.
+- [x] `importImage.ts` (spec §2): decode, EXIF orientation, downscale, WebP/JPEG encode, thumbnail, size validation.
+- [x] `bake.worker.ts` + `atlas.ts`: clip, bevel, outline and shelf-pack into atlases (spec §5), with progress events.
+- [x] Main-thread fallback when `OffscreenCanvas` is unavailable.
 
 **Tests:** atlas packing (no overlaps, fits the max size), and validation rules. Bake 150 pieces on a mid-range device in < 3 s (manual check, log the timing).
 **DoD:** the debug page can load a photo and show the baked atlas.
