@@ -61,12 +61,12 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** MVP acceptance criteria 1–4 (requirements §6) pass.
 
 ## Milestone 6 — PWA and polish
-- [ ] `vite-plugin-pwa`: manifest, icons (including maskable), precache, update prompt (spec §8).
-- [ ] iOS meta tags and the Add to Home Screen hint.
-- [ ] Accessibility pass (NFR-7) and responsive pass (NFR-8).
-- [ ] Lighthouse: PWA checks pass, Performance ≥ 90.
-- [ ] E2E `offline.spec.ts`: load, go offline, reload, open a puzzle and play.
-- [ ] Deploy to Cloudflare Pages (or another static host). Add a README section on deploying.
+- [x] `vite-plugin-pwa`: manifest, icons (including maskable), precache, update prompt (spec §8).
+- [x] iOS meta tags and the Add to Home Screen hint.
+- [x] Accessibility pass (NFR-7) and responsive pass (NFR-8).
+- [x] Lighthouse: PWA checks pass, Performance ≥ 90.
+- [x] E2E `offline.spec.ts`: load, go offline, reload, open a puzzle and play.
+- [ ] Deploy to Cloudflare Pages (or another static host). Add a README section on deploying. *(README section and `_headers` done; the deploy itself needs the owner's hosting account — decision #49.)*
 
 **DoD:** all P0 requirements met. MVP acceptance criterion 5 verified on a real Android and iOS device. **MVP release.**
 

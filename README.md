@@ -18,6 +18,66 @@ A Progressive Web App that turns any photo the user owns into a jigsaw puzzle an
 - **v1.1 (P1):** piece rotation mode, board/frame snapping with ghost image, edge-piece filter, puzzle library management, Norwegian translation, Web Share Target.
 - **Later (P2):** accounts, cloud sync, sharing puzzles via link, leaderboards, AI image generation. These are explicitly **out of scope** for the MVP.
 
+## Development
+
+Requires Node.js 22+.
+
+```bash
+npm install
+npm run dev          # http://localhost:5173 (add -- --host to open it on a phone on the same network)
+npm run lint && npm run typecheck && npm run test:coverage && npm run build
+npm run test:e2e     # Playwright: Chromium, Pixel 7, WebKit iPhone, plus the offline/PWA project
+```
+
+Dev-only debug pages: `#/debug/shapes`, `#/debug/bake`, `#/debug/play`.
+
+## Deploying
+
+The app is a static site: `npm run build` writes everything to `dist/`, including the service
+worker (`sw.js`) and the web app manifest. It must be served over HTTPS (or `localhost`) for the
+service worker and installation to work. No server code or rewrites are needed (hash routing).
+
+### Cloudflare Pages (recommended)
+
+1. In the Cloudflare dashboard: **Workers & Pages → Create → Pages → Connect to Git**, and pick this
+   repository.
+2. Build command: `npm run build`. Build output directory: `dist`. Environment variable:
+   `NODE_VERSION=22`.
+3. Deploy. `public/_headers` is copied to `dist/` and makes Cloudflare revalidate `sw.js`,
+   `index.html` and the manifest on every load, while hashed assets are cached for a year.
+
+Or from a terminal with [Wrangler](https://developers.cloudflare.com/workers/wrangler/):
+
+```bash
+npm run build
+npx wrangler pages deploy dist --project-name picpuzzle
+```
+
+### Netlify
+
+Build command `npm run build`, publish directory `dist`. `_headers` works as on Cloudflare.
+
+### GitHub Pages
+
+Pages serves the site under `/<repository>/`, so build with that base path:
+
+```bash
+BASE_PATH=/spill-puzzle/ npm run build
+```
+
+Then publish `dist/` (for example with the `actions/upload-pages-artifact` and
+`actions/deploy-pages` actions, after enabling Pages with "GitHub Actions" as the source in the
+repository settings). GitHub Pages ignores `_headers`; that's fine, because browsers check the
+service worker for updates without using the HTTP cache.
+
+### After deploying
+
+- Open the site once online, then reload: it now works offline (FR-5.2).
+- Android Chrome offers "Install app"; on iOS Safari use Share → Add to Home Screen (the app shows
+  this hint once).
+- When a new version is deployed, open pages show an "Update available — Reload" toast; reloading
+  saves the current game first (FR-5.3).
+
 ## How to use these docs with an agent
 
 1. Copy the contents of this folder into the root of an empty repo (AGENTS.md, CLAUDE.md and README.md at the root, the rest under `docs/`).
