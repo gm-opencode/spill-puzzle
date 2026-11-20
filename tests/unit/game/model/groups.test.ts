@@ -322,3 +322,33 @@ describe('random play', () => {
     expect(getGroup(state, state.groups.keys().next().value!).pieces).toHaveLength(42);
   });
 });
+
+describe('pieceRect / groupRect', () => {
+  it('returns the cell rectangle for every rotation', async () => {
+    const { pieceRect, groupRect } = await import('../../../../src/game/model/groups');
+    const g = { x: 1000, y: 2000 };
+    expect(pieceRect(GRID, { ...g, rot: 0 }, 5)).toEqual({
+      x: 1100,
+      y: 2080,
+      width: 100,
+      height: 80,
+    });
+    // Rotated 90° clockwise about the origin: offset (100, 80) → (-80, 100), size → (-80, 100).
+    expect(pieceRect(GRID, { ...g, rot: 1 }, 5)).toEqual({
+      x: 840,
+      y: 2100,
+      width: 80,
+      height: 100,
+    });
+    expect(pieceRect(GRID, { ...g, rot: 2 }, 0)).toEqual({
+      x: 900,
+      y: 1920,
+      width: 100,
+      height: 80,
+    });
+    let state = spreadState();
+    state = drop(placeNear(state, 1, 0, 0, 0), 1).state;
+    const merged = getGroup(state, 0);
+    expect(groupRect(GRID, merged)).toEqual({ x: merged.x, y: merged.y, width: 200, height: 80 });
+  });
+});

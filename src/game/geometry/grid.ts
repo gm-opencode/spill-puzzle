@@ -85,3 +85,18 @@ export function computeGrid(width: number, height: number, target: number): Grid
 export function pieceCount(grid: Pick<Grid, 'rows' | 'cols'>): number {
   return grid.rows * grid.cols;
 }
+
+/**
+ * Build a grid from known rows and columns (e.g. from a saved `PuzzleMeta`).
+ * @param width Image width in px.
+ * @param height Image height in px.
+ */
+export function makeGrid(width: number, height: number, rows: number, cols: number): Grid {
+  if (!(width > 0) || !(height > 0) || !Number.isFinite(width) || !Number.isFinite(height)) {
+    throw new RangeError(`makeGrid: invalid image size ${width}×${height}`);
+  }
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows < 1 || cols < 1) {
+    throw new RangeError(`makeGrid: invalid grid ${rows}×${cols}`);
+  }
+  return { rows, cols, width, height, pw: width / cols, ph: height / rows };
+}

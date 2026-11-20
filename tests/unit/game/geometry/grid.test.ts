@@ -77,3 +77,19 @@ describe('computeGrid', () => {
     expect(() => computeGrid(100, 100, 12.5)).toThrow(RangeError);
   });
 });
+
+describe('makeGrid', () => {
+  it('builds a grid from known rows and columns', async () => {
+    const { makeGrid } = await import('../../../../src/game/geometry/grid');
+    expect(makeGrid(1000, 600, 3, 5)).toEqual({
+      rows: 3,
+      cols: 5,
+      width: 1000,
+      height: 600,
+      pw: 200,
+      ph: 200,
+    });
+    expect(() => makeGrid(0, 600, 3, 5)).toThrow(RangeError);
+    expect(() => makeGrid(1000, 600, 0, 5)).toThrow(RangeError);
+  });
+});

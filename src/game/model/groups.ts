@@ -2,6 +2,7 @@
  * Groups: creation, moving, z-order, and drop with snap and multi-merge (spec §6.1, §6.3).
  * Pure functions over an immutable {@link BoardState}.
  */
+import type { Rect } from '../geometry/types';
 import type { BoardState, Group, PieceGrid, PieceId, Point, QuarterTurns } from './types';
 
 /** Snap distance as a fraction of the shorter piece side (spec §6.1). */
@@ -256,4 +257,36 @@ export function isComplete(state: BoardState): boolean {
 /** Groups sorted bottom to top by `z` (render order). */
 export function groupsByZ(state: BoardState): Group[] {
   return [...state.groups.values()].sort((a, b) => a.z - b.z);
+}
+
+/** Axis-aligned world rectangle of a piece's cell (tabs excluded), under its group's rotation. */
+export function pieceRect(
+  grid: PieceGrid,
+  group: Pick<Group, 'x' | 'y' | 'rot'>,
+  id: PieceId,
+): Rect {
+  const p = piecePosition(grid, group, id);
+  const size = rotateVec({ x: grid.pw, y: grid.ph }, group.rot);
+  return {
+    x: Math.min(p.x, p.x + size.x),
+    y: Math.min(p.y, p.y + size.y),
+    width: Math.abs(size.x),
+    height: Math.abs(size.y),
+  };
+}
+
+/** Axis-aligned world rectangle around all piece cells of a group. */
+export function groupRect(grid: PieceGrid, group: Group): Rect {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  for (const id of group.pieces) {
+    const r = pieceRect(grid, group, id);
+    x0 = Math.min(x0, r.x);
+    y0 = Math.min(y0, r.y);
+    x1 = Math.max(x1, r.x + r.width);
+    y1 = Math.max(y1, r.y + r.height);
+  }
+  return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
 }
