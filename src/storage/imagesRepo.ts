@@ -1,2 +1,11 @@
-// TODO(M5): image and thumbnail blobs (spec §7).
-export {};
+import type { PicPuzzleDb } from './db';
+import type { ImagesRepo } from './types';
+
+export function createImagesRepo(db: PicPuzzleDb): ImagesRepo {
+  return {
+    async put(record) {
+      await db.put('images', record);
+    },
+    get: (id) => db.get('images', id),
+  };
+}
