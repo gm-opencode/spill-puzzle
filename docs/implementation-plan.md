@@ -51,11 +51,11 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** on the debug route, a photo becomes a playable puzzle that can be completed with mouse and touch. 60 fps with 150 pieces on a phone (check with Chrome remote DevTools).
 
 ## Milestone 5 — Screens and persistence
-- [ ] `storage/*` repos with `idb`. Schema per spec §7.
-- [ ] Hash router. Library, New puzzle and Play screens (spec §1). Completion overlay.
-- [ ] Autosave (debounced, on hide and pagehide), timer, resume, delete puzzle, request persistent storage.
-- [ ] Settings sheet: sound, haptics. Snap sound, haptics, confetti.
-- [ ] Error handling per spec §11.
+- [x] `storage/*` repos with `idb`. Schema per spec §7.
+- [x] Hash router. Library, New puzzle and Play screens (spec §1). Completion overlay.
+- [x] Autosave (debounced, on hide and pagehide), timer, resume, delete puzzle, request persistent storage.
+- [x] Settings sheet: sound, haptics. Snap sound, haptics, confetti.
+- [x] Error handling per spec §11.
 
 **Tests:** repo unit tests with `fake-indexeddb`. E2E: `create-and-solve.spec.ts` uses a 12-piece puzzle. A test-only hook `window.__game.solveAllButOne()` can be used to speed it up; build it only when `import.meta.env.MODE === 'test'`. `resume.spec.ts` reloads mid-game and asserts the same group positions.
 **DoD:** MVP acceptance criteria 1–4 (requirements §6) pass.

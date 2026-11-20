@@ -24,7 +24,8 @@ export default defineConfig({
   // Dev server for now: the M1/M2 debug routes only exist in dev builds.
   // Switch to `vite preview` when the offline/PWA specs land (Milestone 6).
   webServer: {
-    command: `npx vite --port ${PORT} --strictPort`,
+    // `--mode test` enables the test-only `window.__game` hook (implementation plan M5).
+    command: `npx vite --mode test --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
