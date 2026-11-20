@@ -46,12 +46,15 @@ async function canvasOffset(page: Page): Promise<Point> {
  * (row-major, so each has an already-placed neighbour) onto piece 0's group.
  */
 async function solve(page: Page, dragOnScreen: DragFn) {
-  const offset = await canvasOffset(page);
-  const drag = (a: Point, b: Point) =>
-    dragOnScreen(
+  // Re-measure the canvas for every drag: the debug page's status text can wrap onto
+  // another line as the counts grow (font-dependent), which moves the canvas.
+  const drag = async (a: Point, b: Point) => {
+    const offset = await canvasOffset(page);
+    await dragOnScreen(
       { x: a.x + offset.x, y: a.y + offset.y },
       { x: b.x + offset.x, y: b.y + offset.y },
     );
+  };
   const total = 12;
   for (let piece = 0; piece < total; piece++) {
     for (let attempt = 0; ; attempt++) {
