@@ -5,11 +5,11 @@ Work through the milestones in order. Each milestone ends in a working, committe
 ---
 
 ## Milestone 0 — Project setup
-- [ ] Vite + React + TS (strict) scaffold. ESLint, Prettier, Vitest, Playwright configured.
-- [ ] Folder structure as in architecture.md §2 (empty modules with TODO exports are fine).
-- [ ] `npm run dev | build | preview | lint | typecheck | test | test:e2e` scripts.
-- [ ] GitHub Actions CI running lint, typecheck, unit tests and build.
-- [ ] `docs/decisions.md` created (ADR-style log).
+- [x] Vite + React + TS (strict) scaffold. ESLint, Prettier, Vitest, Playwright configured.
+- [x] Folder structure as in architecture.md §2 (empty modules with TODO exports are fine).
+- [x] `npm run dev | build | preview | lint | typecheck | test | test:e2e` scripts.
+- [x] GitHub Actions CI running lint, typecheck, unit tests and build.
+- [x] `docs/decisions.md` created (ADR-style log).
 
 **DoD:** `npm run build` succeeds, CI is green, and a blank app renders "PicPuzzle".
 
