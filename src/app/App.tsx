@@ -1,53 +1,73 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { ToastHost } from '../components/Toast';
+import { t } from '../i18n/t';
+import { LibraryScreen } from '../screens/library/LibraryScreen';
+import { NewPuzzleScreen } from '../screens/new/NewPuzzleScreen';
+import { PlayScreen } from '../screens/play/PlayScreen';
+import styles from './App.module.css';
+import { navigate, useRoute } from './router';
+import { useAppStore } from './store';
 
 /**
- * Dev-only debug route. `import.meta.env.DEV` is a compile-time constant, so in
- * production builds this branch and the debug chunk are removed entirely.
+ * Dev-only debug routes. `import.meta.env.DEV` is a compile-time constant, so in
+ * production builds these chunks are removed entirely.
  */
-const ShapesDebug = import.meta.env.DEV ? lazy(() => import('../debug/ShapesDebug')) : null;
-const BakeDebug = import.meta.env.DEV ? lazy(() => import('../debug/BakeDebug')) : null;
-const PlayDebug = import.meta.env.DEV ? lazy(() => import('../debug/PlayDebug')) : null;
-
-function useHash(): string {
-  const [hash, setHash] = useState(() => window.location.hash);
-  useEffect(() => {
-    const onChange = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', onChange);
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
-  return hash;
-}
+const debugPages = import.meta.env.DEV
+  ? {
+      shapes: lazy(() => import('../debug/ShapesDebug')),
+      bake: lazy(() => import('../debug/BakeDebug')),
+      play: lazy(() => import('../debug/PlayDebug')),
+    }
+  : null;
 
 export function App() {
-  const hash = useHash();
+  const route = useRoute();
+  const storage = useAppStore((s) => s.storage);
+  const init = useAppStore((s) => s.init);
+  const [ready, setReady] = useState(false);
 
-  if (ShapesDebug && hash.startsWith('#/debug/shapes')) {
-    return (
-      <Suspense fallback={null}>
-        <ShapesDebug />
-      </Suspense>
-    );
+  useEffect(() => {
+    void init().finally(() => setReady(true));
+  }, [init]);
+
+  useEffect(() => {
+    if (route.name === 'notFound') navigate({ name: 'library' }, { replace: true });
+  }, [route.name]);
+
+  if (route.name === 'debug') {
+    const Page = debugPages?.[route.page];
+    if (Page) {
+      return (
+        <Suspense fallback={null}>
+          <Page />
+        </Suspense>
+      );
+    }
   }
 
-  if (PlayDebug && hash.startsWith('#/debug/play')) {
+  if (!ready) {
     return (
-      <Suspense fallback={null}>
-        <PlayDebug />
-      </Suspense>
-    );
-  }
-
-  if (BakeDebug && hash.startsWith('#/debug/bake')) {
-    return (
-      <Suspense fallback={null}>
-        <BakeDebug />
-      </Suspense>
+      <p className={styles.loading} role="status">
+        {t('app.loading')}
+      </p>
     );
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>PicPuzzle</h1>
-    </main>
+    <>
+      {storage && !storage.persistent && (
+        <div className={styles.banner} role="status" data-testid="storage-banner">
+          {t('storage.unavailable')}
+        </div>
+      )}
+      {route.name === 'new' ? (
+        <NewPuzzleScreen />
+      ) : route.name === 'play' ? (
+        <PlayScreen key={route.id} puzzleId={route.id} />
+      ) : (
+        <LibraryScreen />
+      )}
+      <ToastHost />
+    </>
   );
 }
