@@ -1,0 +1,50 @@
+.dialog {
+  border: none;
+  padding: 0;
+  margin: auto auto 0;
+  width: min(100%, 520px);
+  max-height: 90dvh;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 640px) {
+  .dialog {
+    margin: auto;
+    border-radius: var(--radius);
+  }
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+.dialog[open] {
+  animation: rise 180ms var(--ease);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 0 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.body {
+  padding: 8px 20px 20px;
+}

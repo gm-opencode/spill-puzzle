@@ -1,0 +1,20 @@
+:root {
+  --bg: #1e1f24;
+  --surface: #2a2b32;
+  --surface-2: #34353d;
+  --border: #44464f;
+  /* Boundaries of controls: ≥ 3:1 against bg and surface (WCAG 1.4.11). */
+  --border-strong: #7d808c;
+  --fg: #f2f2f4;
+  --muted: #b4b6bf;
+  --accent: #7c9cff;
+  --accent-fg: #0d1430;
+  --danger: #ff7b7b;
+  --chrome: rgb(30 31 36 / 0.72);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --tap: 44px;
+  --shadow: 0 8px 28px rgb(0 0 0 / 0.35);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}

@@ -1,0 +1,15 @@
+.loading {
+  margin: 0;
+  padding: 24px;
+  color: var(--muted);
+}
+
+.banner {
+  position: relative;
+  z-index: 20;
+  padding: 8px 16px;
+  background: #5a4410;
+  color: #ffe9b0;
+  font-size: 0.9rem;
+  text-align: center;
+}

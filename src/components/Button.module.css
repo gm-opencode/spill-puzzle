@@ -1,0 +1,65 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--fg);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 150ms var(--ease),
+    transform 150ms var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:hover {
+  background: var(--border);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.primary:hover {
+  background: #98b2ff;
+}
+
+.ghost {
+  background: transparent;
+}
+
+.ghost:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.danger {
+  background: var(--danger);
+  color: #2a0a0a;
+}
+
+.icon {
+  padding: 0;
+  width: var(--tap);
+}
+
+.block {
+  width: 100%;
+}
