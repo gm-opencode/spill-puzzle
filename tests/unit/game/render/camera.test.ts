@@ -10,6 +10,7 @@ import {
   lerpCamera,
   screenToWorld,
   unionRects,
+  usableArea,
   wheelZoomFactor,
   worldToScreen,
   zoomAt,
@@ -39,6 +40,24 @@ describe('camera', () => {
     expect(tl.y).toBeGreaterThanOrEqual(FIT_PADDING - 1e-9);
   });
 
+  it('fits into the part of the viewport not covered by insets', () => {
+    const insets = { top: 60, right: 0, bottom: 80, left: 0 };
+    const cam = fitRect(BOARD, VIEW, 16, insets);
+    expect(cam.scale).toBeCloseTo(Math.min(768 / 2048, (600 - 140 - 32) / 1536), 12);
+    const centre = worldToScreen(cam, { x: 1024, y: 768 });
+    expect(centre.y).toBeCloseTo(60 + (600 - 140) / 2, 9);
+    const top = worldToScreen(cam, { x: 0, y: 0 });
+    expect(top.y).toBeGreaterThanOrEqual(60 + 16 - 1e-9);
+    expect(
+      usableArea({ width: 10, height: 10 }, { top: 20, right: 20, bottom: 20, left: 20 }),
+    ).toEqual({
+      x: 20,
+      y: 20,
+      width: 1,
+      height: 1,
+    });
+  });
+
   it('never uses a negative fit size on tiny viewports', () => {
     expect(fitScale(BOARD, { width: 10, height: 10 })).toBeGreaterThan(0);
   });
@@ -47,6 +66,8 @@ describe('camera', () => {
     const limits = cameraLimits(BOARD, AREA, VIEW);
     expect(limits.minScale).toBeCloseTo(fitScale(AREA, VIEW), 12);
     expect(limits.maxScale).toBeCloseTo(4 * fitScale(BOARD, VIEW), 12);
+    const withInsets = cameraLimits(BOARD, AREA, VIEW, { top: 60, right: 0, bottom: 80, left: 0 });
+    expect(withInsets.minScale).toBeLessThan(limits.minScale);
     const tiny = cameraLimits(BOARD, { x: 0, y: 0, width: 10, height: 10 }, VIEW);
     expect(tiny.maxScale).toBeGreaterThanOrEqual(tiny.minScale);
   });

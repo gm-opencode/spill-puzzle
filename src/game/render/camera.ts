@@ -42,17 +42,53 @@ export function worldToScreen(camera: Camera, p: Point): Point {
   return { x: p.x * camera.scale + camera.x, y: p.y * camera.scale + camera.y };
 }
 
+/** Screen space covered by UI chrome (top bar, toolbar), in CSS px. */
+export interface Insets {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export const NO_INSETS: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+/** The part of the viewport not covered by `insets`, as a screen rectangle. */
+export function usableArea(viewport: Viewport, insets: Insets = NO_INSETS): Rect {
+  return {
+    x: insets.left,
+    y: insets.top,
+    width: Math.max(1, viewport.width - insets.left - insets.right),
+    height: Math.max(1, viewport.height - insets.top - insets.bottom),
+  };
+}
+
 /** Scale at which `rect` fits in the viewport with `padding` CSS px around it. */
-export function fitScale(rect: Rect, viewport: Viewport, padding: number = FIT_PADDING): number {
-  const w = Math.max(1, viewport.width - 2 * padding);
-  const h = Math.max(1, viewport.height - 2 * padding);
+export function fitScale(
+  rect: Rect,
+  viewport: Viewport,
+  padding: number = FIT_PADDING,
+  insets: Insets = NO_INSETS,
+): number {
+  const area = usableArea(viewport, insets);
+  const w = Math.max(1, area.width - 2 * padding);
+  const h = Math.max(1, area.height - 2 * padding);
   return Math.min(w / rect.width, h / rect.height);
 }
 
-/** Camera that centres `rect` in the viewport at its fit scale. */
-export function fitRect(rect: Rect, viewport: Viewport, padding: number = FIT_PADDING): Camera {
-  const scale = fitScale(rect, viewport, padding);
-  return centreOn(rect, viewport, scale);
+/** Camera that centres `rect` in the uncovered part of the viewport at its fit scale. */
+export function fitRect(
+  rect: Rect,
+  viewport: Viewport,
+  padding: number = FIT_PADDING,
+  insets: Insets = NO_INSETS,
+): Camera {
+  const scale = fitScale(rect, viewport, padding, insets);
+  const area = usableArea(viewport, insets);
+  return {
+    scale,
+    x: area.x + area.width / 2 - (rect.x + rect.width / 2) * scale,
+    y: area.y + area.height / 2 - (rect.y + rect.height / 2) * scale,
+  };
 }
 
 /** Camera at `scale` with the centre of `rect` in the middle of the viewport. */
@@ -68,9 +104,17 @@ export function centreOn(rect: Rect, viewport: Viewport, scale: number): Camera 
  * Zoom limits (spec §6.5): `minScale` fits the whole play area, `maxScale` is
  * 4 × the fit-to-board scale. If the play area is tiny, `maxScale` never drops below `minScale`.
  */
-export function cameraLimits(board: Rect, playArea: Rect, viewport: Viewport): CameraLimits {
-  const minScale = fitScale(playArea, viewport);
-  const maxScale = Math.max(minScale, MAX_ZOOM_FACTOR * fitScale(board, viewport));
+export function cameraLimits(
+  board: Rect,
+  playArea: Rect,
+  viewport: Viewport,
+  insets: Insets = NO_INSETS,
+): CameraLimits {
+  const minScale = fitScale(playArea, viewport, FIT_PADDING, insets);
+  const maxScale = Math.max(
+    minScale,
+    MAX_ZOOM_FACTOR * fitScale(board, viewport, FIT_PADDING, insets),
+  );
   return { minScale, maxScale, bounds: playArea };
 }
 

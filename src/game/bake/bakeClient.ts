@@ -38,6 +38,11 @@ function deviceMemory(): number | undefined {
   return (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
 }
 
+/** Default maximum atlas side for this device, in px (spec §5). */
+export function defaultAtlasSize(): number {
+  return chooseAtlasSize(deviceMemory());
+}
+
 /** True if the worker path can run: module workers plus OffscreenCanvas with a 2D context. */
 export function supportsWorkerBaking(): boolean {
   if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') return false;

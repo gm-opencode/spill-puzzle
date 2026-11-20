@@ -13,7 +13,7 @@ import {
 } from 'pixi.js';
 import { bakeAtlases, disposeBakeResult, type BakeOutcome } from './bake/bakeClient';
 import { makeGrid, type Grid } from './geometry/grid';
-import { generatePieceShapes } from './geometry/outline';
+import { generatePieceShapes, piecePad } from './geometry/outline';
 import type { Point, Rect } from './geometry/types';
 import {
   bringToFront,
@@ -36,8 +36,10 @@ import {
   fitRect,
   lerpCamera,
   unionRects,
+  NO_INSETS,
   type Camera,
   type CameraLimits,
+  type Insets,
 } from './render/camera';
 import {
   createShadow,
@@ -105,6 +107,7 @@ export class GameController {
   /** Running "return to start" tweens of cancelled drags, by group id. */
   private readonly groupTweens = new Map<number, () => void>();
   private camera: Camera = { x: 0, y: 0, scale: 1 };
+  private insets: Insets = NO_INSETS;
   private limits: CameraLimits;
   private cancelCameraTween: (() => void) | null = null;
   private drag: ActiveDrag | null = null;
@@ -134,6 +137,8 @@ export class GameController {
    * @param image The stored, normalised image (1 px = 1 world px).
    * @param state Saved progress to resume, if any.
    * @param onProgress Generation progress in `[0, 1]` (FR-2.5).
+   * @param options `maxAtlasSize` overrides the device default (spec §11 retry);
+   *   `insets` are screen edges covered by UI (see {@link setInsets}).
    */
   static async create(
     canvasHost: HTMLElement,
@@ -141,6 +146,7 @@ export class GameController {
     image: Blob,
     state?: PuzzleState,
     onProgress?: (p: number) => void,
+    options: { maxAtlasSize?: number; insets?: Insets } = {},
   ): Promise<GameController> {
     onProgress?.(0);
     const bitmap = await createImageBitmap(image);
@@ -151,6 +157,7 @@ export class GameController {
       const shapes = generatePieceShapes(grid, meta.seed);
       onProgress?.(0.05);
       bake = await bakeAtlases(bitmap, shapes, {
+        maxAtlasSize: options.maxAtlasSize,
         onProgress: (p) => onProgress?.(0.05 + p * 0.9),
       });
       const portrait = canvasHost.clientHeight > canvasHost.clientWidth;
@@ -171,6 +178,7 @@ export class GameController {
         board,
         scattered.area,
       );
+      if (options.insets) controller.setInsets(options.insets);
       if (state) controller.applyCamera(state.camera);
       else controller.zoomToFit(false);
       onProgress?.(1);
@@ -186,7 +194,7 @@ export class GameController {
   /** Animate the camera to show the board and every piece (spec §6.5). */
   zoomToFit(animate = true): void {
     const target = clampCamera(
-      fitRect(this.contentRect(), this.engine.viewport()),
+      fitRect(this.contentRect(), this.engine.viewport(), undefined, this.insets),
       this.engine.viewport(),
       this.limits,
     );
@@ -198,6 +206,15 @@ export class GameController {
       (t) => this.applyCamera(lerpCamera(from, target, t)),
       () => (this.cancelCameraTween = null),
     );
+  }
+
+  /**
+   * Tell the controller which screen edges are covered by UI (top bar, toolbar), so
+   * zoom to fit keeps pieces out from under them. CSS px.
+   */
+  setInsets(insets: Insets): void {
+    this.insets = { ...insets };
+    this.refreshLimits();
   }
 
   /** Show or hide the original image over the play area (FR-3.7). Any tap hides it. */
@@ -222,6 +239,28 @@ export class GameController {
       fraction: boardProgress(this.board),
       complete: isComplete(this.board),
     };
+  }
+
+  /**
+   * Test-only (`MODE === 'test'`, implementation plan M5): put every piece except the
+   * last into one group on the board, so E2E tests only need one real drag. A no-op in
+   * other builds.
+   */
+  testSolveAllButOne(): void {
+    if (import.meta.env.MODE !== 'test') return;
+    const last = this.board.pieceGroup.length - 1;
+    let board = this.board;
+    board = moveGroup(board, groupOfPiece(board, 0).id, 0, 0);
+    // Row-major order: every piece has a left or upper neighbour already placed.
+    for (let p = 1; p < last; p++) {
+      const g = groupOfPiece(board, p);
+      if (g.id === groupOfPiece(board, 0).id) continue;
+      board = drop(moveGroup(board, g.id, 0, 0), g.id).state;
+    }
+    this.board = board;
+    this.layer.reset(board);
+    this.afterBoardChange();
+    this.zoomToFit(false);
   }
 
   on<K extends keyof GameEvents>(event: K, cb: Listener<K>): () => void {
@@ -259,16 +298,18 @@ export class GameController {
     return { x: 0, y: 0, width: this.grid.width, height: this.grid.height };
   }
 
-  /** Board plus every group. */
+  /** Board plus every group, grown by the tab padding so tabs are included. */
   private contentRect(): Rect {
     const rects = [this.boardRect()];
     for (const g of this.board.groups.values()) rects.push(groupRect(this.grid, g));
-    return unionRects(rects);
+    const r = unionRects(rects);
+    const pad = piecePad(this.grid);
+    return { x: r.x - pad, y: r.y - pad, width: r.width + 2 * pad, height: r.height + 2 * pad };
   }
 
   private computeLimits(): CameraLimits {
     const playArea = unionRects([this.scatterArea, this.contentRect()]);
-    return cameraLimits(this.boardRect(), playArea, this.engine.viewport());
+    return cameraLimits(this.boardRect(), playArea, this.engine.viewport(), this.insets);
   }
 
   private refreshLimits(): void {
