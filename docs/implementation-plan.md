@@ -33,9 +33,9 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** the debug page can load a photo and show the baked atlas.
 
 ## Milestone 3 — Game model (pure, tested)
-- [ ] `types.ts`, `groups.ts`: create initial groups, `move`, `drop` with snap and multi-merge (spec §6.1), and completion detection.
-- [ ] `scatter.ts` (spec §6.6).
-- [ ] `progress.ts`.
+- [x] `types.ts`, `groups.ts`: create initial groups, `move`, `drop` with snap and multi-merge (spec §6.1), and completion detection.
+- [x] `scatter.ts` (spec §6.6).
+- [x] `progress.ts`.
 
 **Tests:** snapping within and beyond the threshold. No snapping between non-neighbours or with different rotations. Multi-merge on one drop. The merged position follows the largest group. Completion. Scatter places no piece inside the board rect, and is deterministic per seed.
 **DoD:** ≥ 90% coverage on `game/model`.
