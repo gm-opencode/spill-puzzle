@@ -73,6 +73,8 @@ describe.each(backends)('storage contract (%s)', (name, open) => {
     const back = await s.images.get('img1');
     expect(back?.width).toBe(800);
     expect(await back?.blob.text()).toBe('img');
+    expect(back?.blob.type).toBe('image/webp');
+    expect(await back?.thumbBlob.text()).toBe('thumb');
     expect(await s.images.get('missing')).toBeUndefined();
   });
 
@@ -136,6 +138,20 @@ describe.each(backends)('storage contract (%s)', (name, open) => {
     expect(await s.settings.get()).toEqual(DEFAULT_SETTINGS);
     await s.settings.put({ ...DEFAULT_SETTINGS, sound: false });
     expect((await s.settings.get()).sound).toBe(false);
+  });
+});
+
+describe('stored image format', () => {
+  it('keeps bytes as ArrayBuffers, not Blobs (WebKit private mode)', async () => {
+    await openStorage('format');
+    const s = await openStorage('format');
+    await s.images.put(image('img1'));
+    const db = await openDB('format', DB_VERSION);
+    const raw = (await db.get('images', 'img1')) as Record<string, unknown>;
+    expect(raw.data).toBeInstanceOf(ArrayBuffer);
+    expect(raw.thumbData).toBeInstanceOf(ArrayBuffer);
+    expect(Object.values(raw).some((v) => v instanceof Blob)).toBe(false);
+    db.close();
   });
 });
 

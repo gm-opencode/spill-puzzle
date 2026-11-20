@@ -7,13 +7,24 @@ export type Point = { x: number; y: number };
 
 /** Library → pick a photo → choose a piece count → start. Ends on the Play screen. */
 export async function createPuzzle(page: Page, pieces: number, file = 'portrait.png') {
+  const errors: string[] = [];
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto('/');
   const button = page.getByRole('button', { name: /Choose a photo|New puzzle/ }).first();
   const [chooser] = await Promise.all([page.waitForEvent('filechooser'), button.click()]);
   await chooser.setFiles(fixture(file));
   await page.getByRole('radio', { name: `${pieces} pieces` }).click();
   await page.getByTestId('start-puzzle').click();
-  await expect(page).toHaveURL(/#\/play\//);
+  await page.waitForURL(/#\/play\//, { timeout: 10_000 }).catch(async () => {
+    const toasts = await page.getByTestId('toast').allTextContents();
+    throw new Error(
+      `Start puzzle did not open the Play screen. Toasts: ${JSON.stringify(toasts)}. ` +
+        `Errors: ${JSON.stringify(errors)}`,
+    );
+  });
   await expect(page.getByTestId('play-progress')).toHaveText(/^0 \/ \d+$/, { timeout: 20_000 });
 }
 
@@ -73,7 +84,10 @@ export async function drag(page: Page, testInfo: TestInfo, from: Point, to: Poin
   await page.mouse.up();
 }
 
-/** Drag `piece`'s group so the piece lands where it belongs relative to `target`'s origin. */
+/**
+ * Drag `piece`'s group so the piece lands where it belongs relative to `target`'s origin,
+ * then wait until the game state shows the group moved (CI can be slow to process input).
+ */
 export async function placePiece(page: Page, testInfo: TestInfo, piece: number, target: Point) {
   const s = await gameSnapshot(page);
   const group = s.groups.find((g) => g.pieces.includes(piece))!;
@@ -83,4 +97,16 @@ export async function placePiece(page: Page, testInfo: TestInfo, piece: number, 
     await pieceCentreOnPage(page, s, group, piece),
     await pieceCentreOnPage(page, s, target, piece),
   );
+  await expect
+    .poll(
+      async () => {
+        const now = (await gameSnapshot(page)).groups.find((g) => g.pieces.includes(piece))!;
+        return now.x !== group.x || now.y !== group.y || now.pieces.length !== group.pieces.length;
+      },
+      { timeout: 2000 },
+    )
+    .toBe(true)
+    .catch(() => {
+      // Didn't move: the caller decides whether to retry.
+    });
 }

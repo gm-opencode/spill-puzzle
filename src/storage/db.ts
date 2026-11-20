@@ -3,14 +3,30 @@
  */
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { upgrade } from './migrations';
-import type { AppSettings, ImageRecord, PuzzleMeta, PuzzleState } from './types';
+import type { AppSettings, PuzzleMeta, PuzzleState } from './types';
 
 export const DB_NAME = 'picpuzzle';
 export const DB_VERSION = 1;
 export const SETTINGS_KEY = 'app';
 
+/**
+ * How an image is stored: bytes as `ArrayBuffer`s rather than `Blob`s, because WebKit
+ * refuses to store Blobs in IndexedDB in private/ephemeral sessions (decision #42).
+ */
+export interface StoredImage {
+  id: string;
+  data: ArrayBuffer;
+  type: string;
+  thumbData: ArrayBuffer;
+  thumbType: string;
+  width: number;
+  height: number;
+  mime: string;
+  createdAt: number;
+}
+
 export interface PicPuzzleSchema extends DBSchema {
-  images: { key: string; value: ImageRecord };
+  images: { key: string; value: StoredImage };
   puzzles: {
     key: string;
     value: PuzzleMeta;

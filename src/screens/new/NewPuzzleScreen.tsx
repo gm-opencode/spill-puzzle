@@ -93,6 +93,7 @@ export function NewPuzzleScreen() {
       });
       await storage.puzzles.create(meta);
     } catch (e) {
+      console.error('Creating the puzzle failed', e);
       setBusy(false);
       toast(isQuotaError(e) ? t('storage.quota') : t('play.loadFailed'), 'error');
       return;

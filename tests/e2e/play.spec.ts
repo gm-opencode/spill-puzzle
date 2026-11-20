@@ -63,7 +63,19 @@ async function solve(page: Page, dragOnScreen: DragFn) {
       const done = piece === 0 ? Math.hypot(anchor.x, anchor.y) < 1 : anchor.pieces.includes(piece);
       if (done) break;
       await drag(pieceCentre(s, group, piece), pieceCentre(s, target, piece));
-      await page.waitForTimeout(60);
+      // Wait for the drop to be processed before re-reading the state (slow CI machines).
+      await expect
+        .poll(
+          async () => {
+            const now = (await snapshot(page)).groups.find((g) => g.pieces.includes(piece))!;
+            return (
+              now.x !== group.x || now.y !== group.y || now.pieces.length !== group.pieces.length
+            );
+          },
+          { timeout: 2000 },
+        )
+        .toBe(true)
+        .catch(() => {});
     }
   }
   await expect(page.getByTestId('status')).toContainText('Completed ✓ 12 pieces');
