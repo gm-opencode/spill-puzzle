@@ -3,6 +3,8 @@
   --surface: #2a2b32;
   --surface-2: #34353d;
   --border: #44464f;
+  /* Boundaries of controls: ≥ 3:1 against bg and surface (WCAG 1.4.11). */
+  --border-strong: #7d808c;
   --fg: #f2f2f4;
   --muted: #b4b6bf;
   --accent: #7c9cff;

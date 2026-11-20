@@ -28,6 +28,8 @@ export interface AppSettings {
   locale: string;
   /** `navigator.storage.persist()` has been requested (FR-4.4). */
   persistRequested: boolean;
+  /** The iOS "Add to Home Screen" hint has been shown (spec §8). */
+  installHintShown: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -36,6 +38,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   background: 'dark',
   locale: 'en',
   persistRequested: false,
+  installHintShown: false,
 };
 
 export interface ImagesRepo {

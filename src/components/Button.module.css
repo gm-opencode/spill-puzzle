@@ -11,6 +11,7 @@
   background: var(--surface-2);
   color: var(--fg);
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background 150ms var(--ease),

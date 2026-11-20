@@ -5,10 +5,22 @@
 import { create } from 'zustand';
 import { DEFAULT_SETTINGS, openStorage, type AppSettings, type Storage } from '../storage';
 
+export interface ToastAction {
+  label: string;
+  run(): void | Promise<void>;
+}
+
 export interface Toast {
   id: number;
   message: string;
   kind: 'info' | 'error';
+  action?: ToastAction;
+}
+
+export interface ToastOptions {
+  action?: ToastAction;
+  /** Stay until dismissed (e.g. "Update available"). */
+  sticky?: boolean;
 }
 
 interface AppStore {
@@ -19,7 +31,7 @@ interface AppStore {
   pendingFile: File | null;
   init(): Promise<void>;
   updateSettings(patch: Partial<AppSettings>): Promise<void>;
-  toast(message: string, kind?: Toast['kind']): void;
+  toast(message: string, kind?: Toast['kind'], options?: ToastOptions): void;
   dismissToast(id: number): void;
   setPendingFile(file: File | null): void;
 }
@@ -47,10 +59,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await get().storage?.settings.put(settings);
   },
 
-  toast(message, kind = 'info') {
+  toast(message, kind = 'info', options = {}) {
     const id = nextToastId++;
-    set((s) => ({ toasts: [...s.toasts, { id, message, kind }] }));
-    setTimeout(() => get().dismissToast(id), TOAST_MS);
+    set((s) => ({ toasts: [...s.toasts, { id, message, kind, action: options.action }] }));
+    if (!options.sticky) setTimeout(() => get().dismissToast(id), TOAST_MS);
   },
 
   dismissToast(id) {

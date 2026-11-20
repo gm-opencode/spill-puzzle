@@ -37,6 +37,8 @@ import {
   lerpCamera,
   unionRects,
   NO_INSETS,
+  usableArea,
+  zoomAt,
   type Camera,
   type CameraLimits,
   type Insets,
@@ -81,6 +83,8 @@ interface GameEvents {
   snap: [event: SnapEvent];
   /** All pieces form one group (FR-3.9). */
   complete: [];
+  /** A drag started (`true`) or ended (`false`); e.g. to hide the top bar (spec §1.3). */
+  drag: [active: boolean];
 }
 
 type Listener<K extends keyof GameEvents> = (...args: GameEvents[K]) => void;
@@ -102,12 +106,15 @@ export class GameController {
     change: new Set(),
     snap: new Set(),
     complete: new Set(),
+    drag: new Set(),
   };
   private readonly spriteTweens = new Map<Sprite, () => void>();
   /** Running "return to start" tweens of cancelled drags, by group id. */
   private readonly groupTweens = new Map<number, () => void>();
   private camera: Camera = { x: 0, y: 0, scale: 1 };
   private insets: Insets = NO_INSETS;
+  /** Space held (spec §12): pointers pan even over pieces. */
+  private panMode = false;
   private limits: CameraLimits;
   private cancelCameraTween: (() => void) | null = null;
   private drag: ActiveDrag | null = null;
@@ -206,6 +213,33 @@ export class GameController {
       (t) => this.applyCamera(lerpCamera(from, target, t)),
       () => (this.cancelCameraTween = null),
     );
+  }
+
+  /**
+   * Zoom by `factor` around the centre of the uncovered viewport, animated (FR-3.6 +/-).
+   * Clamped to the zoom limits.
+   */
+  zoomBy(factor: number): void {
+    const area = usableArea(this.engine.viewport(), this.insets);
+    const centre = { x: area.x + area.width / 2, y: area.y + area.height / 2 };
+    const target = clampCamera(
+      zoomAt(this.camera, centre, factor),
+      this.engine.viewport(),
+      this.limits,
+    );
+    this.cancelCameraTween?.();
+    const from = { ...this.camera };
+    this.cancelCameraTween = this.tweens.add(
+      prefersReducedMotion() ? 0 : ZOOM_TO_FIT_MS,
+      (t) => this.applyCamera(lerpCamera(from, target, t)),
+      () => (this.cancelCameraTween = null),
+    );
+  }
+
+  /** While true, pointers pan the camera even over pieces (Space + drag, spec §12). */
+  setPanMode(on: boolean): void {
+    this.panMode = on;
+    this.engine.app.canvas.style.cursor = on ? 'grab' : '';
   }
 
   /**
@@ -349,7 +383,7 @@ export class GameController {
       this.input.pointerDown(
         e.pointerId,
         point(e),
-        this.layer.pieceOf(e.target),
+        this.panMode ? null : this.layer.pieceOf(e.target),
         performance.now(),
       );
     };
@@ -408,6 +442,7 @@ export class GameController {
     c.pivot.set(local.x, local.y);
     c.scale.set(LIFT_SCALE);
     this.drag = { groupId: g.id, pivot: local, rot: g.rot, shadow, origin: { x: g.x, y: g.y } };
+    this.emit('drag', true);
     this.moveDrag({ x: g.x, y: g.y });
     return { groupId: g.id, origin: { x: g.x, y: g.y } };
   }
@@ -427,6 +462,7 @@ export class GameController {
     if (!d) return;
     destroyShadow(d.shadow);
     this.drag = null;
+    this.emit('drag', false);
   }
 
   private cancelDrag(groupId: number, startOrigin: Point): void {

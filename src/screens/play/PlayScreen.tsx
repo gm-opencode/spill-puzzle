@@ -2,7 +2,8 @@
  * Play (spec §1.3): hosts the `GameController`, autosaves (FR-4.1), keeps the timer
  * (FR-3.8), resumes (FR-4.2) and handles load errors (spec §11).
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { onFlush } from '../../app/lifecycle';
 import { navigate } from '../../app/router';
 import { getStorage, useAppStore } from '../../app/store';
 import { playChime, playSnap, unlockAudio, vibrate } from '../../audio/sfx';
@@ -40,6 +41,70 @@ function chromeInsets() {
   return { top, right: 0, bottom: 72, left: 0 };
 }
 
+/** Zoom factor of the +/- buttons and keys. */
+const ZOOM_STEP = 1.4;
+
+/**
+ * Desktop shortcuts (spec §12): `+`/`-` zoom, `0` fit, `P` preview, `Esc` closes the
+ * preview, Space + drag pans. Ignored while typing or while a dialog is open.
+ */
+function usePlayShortcuts(getController: () => GameController | null) {
+  useEffect(() => {
+    const ignore = (e: KeyboardEvent) =>
+      e.metaKey ||
+      e.ctrlKey ||
+      e.altKey ||
+      document.querySelector('dialog[open]') !== null ||
+      (e.target instanceof HTMLElement && e.target.closest('input, select, textarea') !== null);
+
+    const down = (e: KeyboardEvent) => {
+      const c = getController();
+      if (!c || ignore(e)) return;
+      switch (e.key) {
+        case '+':
+        case '=':
+          c.zoomBy(ZOOM_STEP);
+          break;
+        case '-':
+        case '_':
+          c.zoomBy(1 / ZOOM_STEP);
+          break;
+        case '0':
+          c.zoomToFit();
+          break;
+        case 'p':
+        case 'P':
+          c.togglePreview();
+          break;
+        case 'Escape':
+          if (!c.previewVisible) return;
+          c.togglePreview();
+          break;
+        case ' ':
+          // Don't let Space activate a focused button while used for panning.
+          if (e.target instanceof HTMLButtonElement) return;
+          c.setPanMode(true);
+          break;
+        default:
+          return;
+      }
+      e.preventDefault();
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === ' ') getController()?.setPanMode(false);
+    };
+    const blur = () => getController()?.setPanMode(false);
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
+    };
+  }, [getController]);
+}
+
 type Phase =
   | { kind: 'loading'; progress: number }
   | { kind: 'ready' }
@@ -61,7 +126,9 @@ export function PlayScreen({ puzzleId }: { puzzleId: string }) {
   const [elapsed, setElapsed] = useState(0);
   const [completion, setCompletion] = useState<{ celebrate: boolean } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const toast = useAppStore((s) => s.toast);
+  usePlayShortcuts(useCallback(() => sessionRef.current?.controller ?? null, []));
 
   useEffect(() => {
     let cancelled = false;
@@ -160,6 +227,12 @@ export function PlayScreen({ puzzleId }: { puzzleId: string }) {
         },
       );
       sessionRef.current = session;
+      cleanups.push(
+        onFlush(async () => {
+          if (timer.running) session.autosave.markDirty();
+          await session.autosave.flush();
+        }),
+      );
 
       const initial = controller.getProgress();
       setProgress(initial);
@@ -181,6 +254,7 @@ export function PlayScreen({ puzzleId }: { puzzleId: string }) {
           if (s.sound) playSnap();
           if (s.haptics) vibrate();
         }),
+        controller.on('drag', setDragging),
         controller.on('complete', () => {
           timer.pause();
           setElapsed(timer.elapsedMs);
@@ -277,7 +351,7 @@ export function PlayScreen({ puzzleId }: { puzzleId: string }) {
     <div className={styles.screen}>
       <div ref={hostRef} className={styles.host} data-testid="play-host" />
 
-      <header className={styles.topbar} data-chrome="top">
+      <header className={styles.topbar} data-chrome="top" data-dragging={dragging}>
         <Button variant="ghost" icon="back" iconOnly aria-label={t('play.back')} onClick={back} />
         <div className={styles.title}>
           <span className={styles.name}>{title}</span>
@@ -312,6 +386,8 @@ export function PlayScreen({ puzzleId }: { puzzleId: string }) {
         <Toolbar
           onPreview={() => sessionRef.current?.controller.togglePreview()}
           onFit={() => sessionRef.current?.controller.zoomToFit()}
+          onZoomIn={() => sessionRef.current?.controller.zoomBy(ZOOM_STEP)}
+          onZoomOut={() => sessionRef.current?.controller.zoomBy(1 / ZOOM_STEP)}
         />
       )}
 

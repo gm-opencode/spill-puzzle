@@ -1,5 +1,6 @@
 /** Library (spec §1.1, FR-4.2, FR-4.3). */
 import { useCallback, useEffect, useState } from 'react';
+import { browserInstallEnv, shouldShowInstallHint } from '../../app/installHint';
 import { navigate } from '../../app/router';
 import { getStorage, useAppStore } from '../../app/store';
 import { Button } from '../../components/Button';
@@ -24,6 +25,17 @@ export function LibraryScreen() {
   const [confirmDelete, setConfirmDelete] = useState<PuzzleMeta | null>(null);
   const setPendingFile = useAppStore((s) => s.setPendingFile);
   const toast = useAppStore((s) => s.toast);
+  const installHintShown = useAppStore((s) => s.settings.installHintShown);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const [showInstallHint] = useState(() =>
+    shouldShowInstallHint(browserInstallEnv(installHintShown)),
+  );
+  const [installHintOpen, setInstallHintOpen] = useState(showInstallHint);
+
+  // Show it once: remember as soon as it has been displayed.
+  useEffect(() => {
+    if (showInstallHint) void updateSettings({ installHintShown: true });
+  }, [showInstallHint, updateSettings]);
 
   const load = useCallback(async () => {
     const storage = getStorage();
@@ -57,7 +69,7 @@ export function LibraryScreen() {
         <div className={styles.actions}>
           {entries && entries.length > 0 && (
             <PhotoPicker variant="primary" icon="plus" onPick={pick}>
-              {t('library.newPuzzle')}
+              <span className={styles.newLabel}>{t('library.newPuzzle')}</span>
             </PhotoPicker>
           )}
           <Button
@@ -69,6 +81,22 @@ export function LibraryScreen() {
           />
         </div>
       </header>
+
+      {installHintOpen && (
+        <aside className={styles.hint} data-testid="install-hint">
+          <div>
+            <strong>{t('install.title')}</strong>
+            <p>{t('install.body')}</p>
+          </div>
+          <Button
+            variant="ghost"
+            icon="close"
+            iconOnly
+            aria-label={t('common.dismiss')}
+            onClick={() => setInstallHintOpen(false)}
+          />
+        </aside>
+      )}
 
       {entries && entries.length === 0 && (
         <section className={styles.empty} data-testid="empty-state">

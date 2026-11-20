@@ -59,5 +59,12 @@
   "settings.title": "Settings",
   "settings.sound": "Sound",
   "settings.haptics": "Haptics",
-  "settings.hapticsHint": "Short vibration when pieces snap, where supported."
+  "settings.hapticsHint": "Short vibration when pieces snap, where supported.",
+  "pwa.updateAvailable": "Update available",
+  "pwa.reload": "Reload",
+  "install.title": "Install PicPuzzle",
+  "install.body": "Tap the Share button, then “Add to Home Screen” to play full screen and offline.",
+  "play.tools": "Puzzle tools",
+  "play.zoomIn": "Zoom in",
+  "play.zoomOut": "Zoom out"
 }

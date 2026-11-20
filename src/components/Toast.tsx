@@ -18,6 +18,17 @@ export function ToastHost() {
           data-testid="toast"
         >
           <span className={styles.message}>{toast.message}</span>
+          {toast.action && (
+            <Button
+              variant="primary"
+              onClick={() => {
+                dismiss(toast.id);
+                void toast.action?.run();
+              }}
+            >
+              {toast.action.label}
+            </Button>
+          )}
           <Button
             variant="ghost"
             icon="close"

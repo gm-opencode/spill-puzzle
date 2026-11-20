@@ -6,3 +6,5 @@ LICENSE
 *.md
 test-results
 playwright-report
+dist-test
+dev-dist
