@@ -12,7 +12,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       // Pure logic only (NFR-10). Browser-only code is covered by Playwright.
-      include: ['src/game/geometry/**', 'src/game/model/**', 'src/game/bake/atlas.ts'],
+      include: [
+        'src/game/geometry/**',
+        'src/game/model/**',
+        'src/game/bake/atlas.ts',
+        'src/game/render/camera.ts',
+        'src/game/render/input.ts',
+      ],
       exclude: ['**/index.ts'],
       reporter: ['text', 'html'],
       thresholds: {
