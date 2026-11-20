@@ -41,12 +41,12 @@ Work through the milestones in order. Each milestone ends in a working, committe
 **DoD:** ≥ 90% coverage on `game/model`.
 
 ## Milestone 4 — Rendering and input
-- [ ] `engine.ts`: Pixi app lifecycle (lazy-loaded), resize handling, DPR clamp.
-- [ ] `pieceSprites.ts`: one container per group, sprites from atlas frames, polygon `hitArea`.
-- [ ] `input.ts`: drag a group, pan, pinch, wheel zoom, edge auto-pan, tap detection (spec §6.4).
-- [ ] `camera.ts`: clamped zoom, zoom-to-fit (spec §6.5).
-- [ ] `effects.ts`: lift on drag, snap animation and highlight, and the dragged-group shadow.
-- [ ] `GameController.ts` public API (architecture §3).
+- [x] `engine.ts`: Pixi app lifecycle (lazy-loaded), resize handling, DPR clamp.
+- [x] `pieceSprites.ts`: one container per group, sprites from atlas frames, polygon `hitArea`.
+- [x] `input.ts`: drag a group, pan, pinch, wheel zoom, edge auto-pan, tap detection (spec §6.4).
+- [x] `camera.ts`: clamped zoom, zoom-to-fit (spec §6.5).
+- [x] `effects.ts`: lift on drag, snap animation and highlight, and the dragged-group shadow.
+- [x] `GameController.ts` public API (architecture §3).
 
 **DoD:** on the debug route, a photo becomes a playable puzzle that can be completed with mouse and touch. 60 fps with 150 pieces on a phone (check with Chrome remote DevTools).
 

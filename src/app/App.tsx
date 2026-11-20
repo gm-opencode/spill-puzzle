@@ -6,6 +6,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
  */
 const ShapesDebug = import.meta.env.DEV ? lazy(() => import('../debug/ShapesDebug')) : null;
 const BakeDebug = import.meta.env.DEV ? lazy(() => import('../debug/BakeDebug')) : null;
+const PlayDebug = import.meta.env.DEV ? lazy(() => import('../debug/PlayDebug')) : null;
 
 function useHash(): string {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -24,6 +25,14 @@ export function App() {
     return (
       <Suspense fallback={null}>
         <ShapesDebug />
+      </Suspense>
+    );
+  }
+
+  if (PlayDebug && hash.startsWith('#/debug/play')) {
+    return (
+      <Suspense fallback={null}>
+        <PlayDebug />
       </Suspense>
     );
   }
